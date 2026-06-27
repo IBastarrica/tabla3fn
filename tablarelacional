@@ -1,0 +1,105 @@
+Proceso de Normalización: Tabla Original → 3FN
+================================================
+
+TABLA ORIGINAL (Desnormalizada)
+--------------------------------
+| Título            | Año  | Duración | Tipo  | Estudio | Dirección Estudio | Actor           |
+|-------------------|------|----------|-------|---------|-------------------|-----------------|
+| Star Wars         | 1977 | 124      | Color | Fox     | Hollywood         | Carrie Fisher   |
+| Star Wars         | 1977 | 124      | Color | Fox     | Hollywood         | Mark Hamill     |
+| Star Wars         | 1977 | 124      | Color | Fox     | Hollywood         | Harrison Ford   |
+| Mighty Ducks      | 1991 | 104      | Color | Disney  | Buena Vista       | Emilio Estevez  |
+| Ben Hur           | 1959 | 212      | Color | MGM     | Hollywood         | Charlton Heston |
+| Ben Hur           | 1959 | 212      | Color | MGM     | Hollywood         | Martha Scott    |
+| El retorno del Jedi | 1983 | 124    | Color | Fox     | Hollywood         | Carrie Fisher   |
+
+PK compuesta: (Título, Actor)
+
+Problemas:
+- Datos de película repetidos por cada actor
+- Dirección del estudio repetida; si cambia, hay que modificar múltiples filas
+
+
+1FN → 2FN: ELIMINAR DEPENDENCIAS PARCIALES
+-------------------------------------------
+Las columnas Año, Duración, Tipo, Estudio, Dirección dependen solo de Título
+(no de toda la PK compuesta). Se separan en dos tablas.
+
+Tabla: Peliculas (PK = Título)
+| Título            | Año  | Duración | Tipo  | Estudio | Dirección |
+|-------------------|------|----------|-------|---------|-----------|
+| Star Wars         | 1977 | 124      | Color | Fox     | Hollywood |
+| Mighty Ducks      | 1991 | 104      | Color | Disney  | Buena Vista |
+| Ben Hur           | 1959 | 212      | Color | MGM     | Hollywood |
+| El retorno del Jedi | 1983 | 124    | Color | Fox     | Hollywood |
+
+Tabla: Peliculas_Actores (PK compuesta = Título, Actor)
+| Título            | Actor           |
+|-------------------|-----------------|
+| Star Wars         | Carrie Fisher   |
+| Star Wars         | Mark Hamill     |
+| Star Wars         | Harrison Ford   |
+| Mighty Ducks      | Emilio Estevez  |
+| Ben Hur           | Charlton Heston |
+| Ben Hur           | Martha Scott    |
+| El retorno del Jedi | Carrie Fisher |
+
+
+2FN → 3FN: ELIMINAR DEPENDENCIAS TRANSITIVAS
+---------------------------------------------
+Dirección depende de Estudio, y Estudio depende de Título → Título → Estudio → Dirección.
+Se crea tabla Estudios. Se agregan IDs numéricos como PKs.
+
+Tabla: Estudios (PK = id_estudio)
+| id_estudio | nombre | direccion   |
+|------------|--------|-------------|
+| 1          | Fox    | Hollywood   |
+| 2          | Disney | Buena Vista |
+| 3          | MGM    | Hollywood   |
+
+Tabla: Peliculas (PK = id_pelicula)
+| id_pelicula | titulo             | año  | duracion | tipo  | id_estudio (FK) |
+|-------------|--------------------|------|----------|-------|-----------------|
+| 1           | Star Wars          | 1977 | 124      | Color | 1               |
+| 2           | Mighty Ducks       | 1991 | 104      | Color | 2               |
+| 3           | Ben Hur            | 1959 | 212      | Color | 3               |
+| 4           | El retorno del Jedi | 1983 | 124     | Color | 1               |
+
+Tabla: Actores (PK = id_actor)
+| id_actor | nombre           |
+|----------|------------------|
+| 1        | Carrie Fisher    |
+| 2        | Mark Hamill      |
+| 3        | Harrison Ford    |
+| 4        | Emilio Estevez   |
+| 5        | Charlton Heston  |
+| 6        | Martha Scott     |
+
+Tabla: Peliculas_Actores (PK compuesta = id_pelicula, id_actor)
+| id_pelicula (FK) | id_actor (FK) |
+|------------------|---------------|
+| 1                | 1             |
+| 1                | 2             |
+| 1                | 3             |
+| 2                | 4             |
+| 3                | 5             |
+| 3                | 6             |
+| 4                | 1             |
+
+
+DIAGRAMA DE RELACIONES
+-----------------------
+Estudios ──1:N──> Peliculas ──N:M──> Actores
+                        │
+                        └── Peliculas_Actores (tabla intermedia)
+
+
+RESUMEN DEL PROCESO
+--------------------
+| Forma Normal | Acción realizada                              |
+|--------------|-----------------------------------------------|
+| 1FN          | Valores atómicos (ya se cumplía)             |
+| 2FN          | Separar Peliculas y Peliculas_Actores        |
+| 3FN          | Crear Estudios y Actores con IDs numéricos   |
+
+Resultado final: 4 tablas en 3FN, sin datos repetidos ni dependencias parciales o transitivas.
